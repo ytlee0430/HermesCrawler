@@ -1,0 +1,9 @@
+channel_id: "1656664899"
+line_bot_access_token: "SHXAAPyNU7UmxFUGN9Oq/e+te6lIWRnv81U8M5btdSqHjUUhobTMDPdsDDRtwvju/AfpcDQ+yFby8jlv5y8YkwDTqwDTa3AyO8WhH0po+NOWBqtblzp61fH6Rs/BuC74DZmMGZ8aBNhgDil5yHobYgdB04t89/1O/w1cDnyilFU="
+line_bot_secret: "f2119322b135217dc2e4875404c608a0"
+user_id: "Ud70d80d3214ed777ebdcd7ab53ac1e2d"
+empty_error_msg: "Oops ! The selected object is no longer available."
+
+website:
+  cn: "https://www.hermes.cn/cn/en/product/"
+  hk: "https://www.hermes.com/hk/en/product/"
