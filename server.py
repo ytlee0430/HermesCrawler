@@ -14,10 +14,10 @@ import validators
 import random
 
 userProductDic = defaultdict(list)
-userProductDic.update(yaml.load(open('userProductDic.yml', 'rb')))
+userProductDic.update(yaml.safe_load(open('userProductDic.yml', 'rb')))
 
 productUserDic = defaultdict(list)
-productUserDic.update(yaml.load(open('productUserDic.yml', 'rb')))
+productUserDic.update(yaml.safe_load(open('productUserDic.yml', 'rb')))
 
 
 def zero():
@@ -25,7 +25,7 @@ def zero():
 
 
 productCountDic = defaultdict(zero)
-productCountDic.update(yaml.load(open('productCountDic.yml', 'rb')))
+productCountDic.update(yaml.safe_load(open('productCountDic.yml', 'rb')))
 
 
 def web_crawler():
@@ -42,19 +42,18 @@ def web_crawler():
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
         'sec-fetch-site': 'same-origin',
         'sec-fetch-mode': 'navigate',
-        'sec-fetch-user': '?1',
         'sec-fetch-dest': 'document',
         'accept-language': 'en-US,en;q=0.9'
     }
 
-    for product in productUserDic:
+    for product in [p for p in productUserDic if len(productUserDic[p]) > 0]:
         response = requests.get(f"{website}{product}", headers=headers)
         print(f"{datetime.datetime.now()}")
         if response.status_code != 200:
             time.sleep(random.randint(3, 20))
             continue
 
-        if msg not in response:
+        if msg not in response.text:
             productCountDic[product] += 1
             if productCountDic[product] > 1:
                 for users in productUserDic[product]:
@@ -79,7 +78,7 @@ def update_file():
 
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=web_crawler, trigger="interval", seconds=180)
+scheduler.add_job(func=web_crawler, trigger="interval", seconds=30)
 scheduler.add_job(func=update_file, trigger="interval", seconds=30)
 scheduler.start()
 
@@ -88,10 +87,15 @@ atexit.register(lambda: scheduler.shutdown())
 
 app = Flask(__name__)
 config = {}
-config.update(yaml.load(open('config.yaml', 'rb')))
+config.update(yaml.safe_load(open('config.yaml', 'rb')))
 
 line_bot_api = LineBotApi(config.get('line_bot_access_token'))
 handler = WebhookHandler(config.get('line_bot_secret'))
+
+@app.route("/ping", methods=["GET"])
+def ping():
+    return "pong"
+
 
 @app.route("/callback", methods=["POST"])
 def callback():
@@ -116,7 +120,10 @@ def reply(event):
     user_id = event.source.user_id
     message = event.message.text
     if message == "list":
-        text = ",".join(userProductDic[user_id])
+        if user_id in userProductDic and len(userProductDic[user_id]) > 0:
+            text = ",".join(userProductDic[user_id])
+        else:
+            text = "you don't have watching list"
     elif not validators.url(message) or not message.startswith("https://www.hermes") or "product" not in message:
         text = "please input valid product url"
     else:
@@ -132,7 +139,7 @@ def reply(event):
             userProductDic[user_id].append(product_id)
             productUserDic[product_id].append(user_id)
             text = f"added product ID {product_id} is in your watching list"
-
+    print(f"text: {text}")
     line_bot_api.reply_message(
         event.reply_token,
         TextSendMessage(text=text)

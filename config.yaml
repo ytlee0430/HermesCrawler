@@ -7,3 +7,4 @@ empty_error_msg: "Oops ! The selected object is no longer available."
 website:
   cn: "https://www.hermes.cn/cn/en/product/"
   hk: "https://www.hermes.com/hk/en/product/"
+  test: "https://www.google.com"
